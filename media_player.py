@@ -248,11 +248,12 @@ async def async_setup_platform(hass, config, async_add_entities, \
     if hasZones:
         for zone in add_zones.keys():
             _LOGGER.debug(f"adding new zone '{zone}'")
+
             pioneer_z = PioneerDevice(
                 hass,
                 config.get(CONF_NAME) + "_" + zone,
                 config.get(CONF_HOST),
-                config.get(CONF_PORT),
+                str(int(config.get(CONF_PORT)) + CONF_VALID_ZONES.index(zone)), ## every instance need its own port
                 config.get(CONF_SERIAL_BRIDGE),
                 config.get(CONF_DISABLED_SOURCES),
                 config.get(CONF_LAST_RADIO_STATION),
@@ -657,6 +658,9 @@ class PioneerDevice(MediaPlayerEntity):
             _LOGGER.debug("Volume: " + str(round(self._volume*100))+"%")
         elif (data[:3] == "HZV" and self._zone == "HDZone"):
             self._volume = int(data[3:5]) / MAX_ZONE_VOLUME
+            _LOGGER.debug("Volume: " + str(round(self._volume*100))+"%")
+        elif (data[:2] == "XV" and self._zone == "HDZone"): ## on VSX-930 XVnn
+            self._volume = int(data[2:4]) / MAX_ZONE_VOLUME
             _LOGGER.debug("Volume: " + str(round(self._volume*100))+"%")
 
         # Current speaker
